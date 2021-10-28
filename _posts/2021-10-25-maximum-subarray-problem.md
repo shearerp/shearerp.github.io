@@ -5,7 +5,7 @@
 
 # The Maximum Subarray Problem & Kadane's Algorithm: a Mathematician's Perspective
 
-The *maximum subarray problem* is a famous computer science problem with a delightful $$O(n)$$ dynamic programming solution known as *Kadane's algorithm.* It's one of those algorithms where the steps are very easy to follow, but the reason those steps work is a bit harder to understand. There are many blog posts that explain the algorithm, but none of the ones I found quite worked for me. After thinking about it on and off for a few days, I came up with the explanation I'll be sharing here.
+The *maximum subarray problem* is a famous computer science problem with a delightful $$O(n)$$ dynamic programming solution known as *Kadane's algorithm.* It's one of those algorithms where the steps are very easy to follow, but the reason those steps work is a bit harder to understand. There are many blog posts that explain the algorithm, but none of the ones I found convinced me that the algorithm was *correct*. After thinking about it on and off for a few days, I derived the algorithm and proved its correctness with the argument I'll be sharing here.
 
 **Maximum subarray problem:** given an array $$[a_1, a_2, \ldots, a_n]$$, find the largest possible sum that a contiguous subarray $$[a_{i+1}, \ldots, a_j]$$ can have. Writing the sum as $$s_{ij} = \sum_{k = i+1}^j a_k$$, we can write the problem as
 
@@ -79,7 +79,9 @@ $$
 
 Then $$p^+ = \max_j p^+_j$$ is the maximum product.
 
-**Exercise:** what happens if the maximum product array is allowed to be empty? (The empty product is conventionally defined as 1, the multiplicative identity, just as the empty sum is conventionally 0, the additive identity.)
+**Exercise:** What happens if the maximum product array is allowed to be empty? (The empty product is conventionally defined as 1, the multiplicative identity, just as the empty sum is conventionally 0, the additive identity.)
+
+**Exercise:** Adapt the argument to solve the [maximum profit problem](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/).
 
 ## Discussion
 
