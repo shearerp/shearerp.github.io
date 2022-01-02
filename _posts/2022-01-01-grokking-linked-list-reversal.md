@@ -1,8 +1,10 @@
-Confession: until recently, I never quite understood how to reverse a linked list. This is my deep dive into exactly how it works (in Python).
+*"in mathematics you don't understand things. You just get used to them." -- John von Neumann*
 
-**Problem:** Reverse a linked list `L` in `O(1)` space.
+Confession: for years, I have found the whole topic of linked lists vaguely intimidating. A good antidote to that fear, I find, is to dive in and solve a problem, explaining it so meticulously that you start to get used to it. The classic problem of reversing a linked list felt like a good place to start, so here is my deep dive into exactly how it works (in Python).
 
-We will use the following classes for the nodes and the overall list:
+**Problem:** Reverse a linked list `L` in-place using only `O(1)` extra space.
+
+We will use these classes to represent the list's nodes and the list itself:
 ```
 class Node:
     """A single node of a singly Linked List"""
@@ -48,7 +50,7 @@ We will loop through the list, reversing arrows as we go.
 * <- a <- b <- c    d -> *
 * <- a <- b <- c <- d    *
 ```
-The reversed part is growing while the original input is shrinking. We want to keep pointers trained on the heads of both. Specifically, after each step, we want these invariants to hold:
+The reversed list is growing while the original list is shrinking. We want to keep pointers trained on the heads of both lists. Specifically, after each step, we want these invariants to hold:
 
 1. A "previous" pointer `P` points to the head of the reversed list.
 2. The "current" pointer `C` points to the head of the original list.
@@ -68,7 +70,7 @@ P = None
 C = L.head
 A = C.next
 ```
-In our example, this sets us up with
+In our example, it looks like this:
 ```
 P    C    A                
 *    a -> b -> c -> d -> *
@@ -97,8 +99,7 @@ P = C
 C = A
 A = C.next
 ```
-
-Here's how it looks:
+Here's how our workspace changes as we run these lines step-by-step:
 ```
 # initial state
 
@@ -163,13 +164,13 @@ To get to a working function, we need a few final tweaks:
 
 2. When `C` points to null, `A = C.next` will throw an error. So we have to check if `C` is null before doing that assignment.
 
-3. After we finish, set the overall list head to `P`.
+3. After we finish, set the reversed list's head to `P`.
 
 Just for fun, we also change `P, A, C` to the more descriptive `prev, cur, after` and squish the reassignments into some nice little one-liners.
 
 ```
 def reverseList(L):
-    """Reverses the input linked list in place using O(1) extra space."""
+    """Reverses the input linked list in-place using O(1) extra space."""
     prev, cur, after = (None, L.head, L.head.next)
     while cur:
         cur.next, prev, cur = (prev, cur, after)
