@@ -1,8 +1,13 @@
 *"in mathematics you don't understand things. You just get used to them." -- John von Neumann*
 
-For years, I have found the whole topic of linked lists vaguely confusing and intimidating: *how do you keep track of all those pointers?* A good way to overcome that uneasy fuzziness is to dive in and solve a problem, explaining it so meticulously that you start to get used to the moving parts. The classic problem of reversing a linked list felt like a good place to start, so here is my deep dive into exactly how it works (in Python).
+For years, I have found the whole topic of linked lists vaguely confusing and intimidating: *how do you keep track of all those pointers?*
 
-**Problem:** Reverse a linked list `L` in-place using only `O(1)` extra space.
+One way to overcome this sort of feeling is to dive in and solve a problem, explaining every detail so meticulously that you get used to the moving parts. In the best case, those parts begin to look less like strange and brilliant bolts of inspiration that you yourself could never come up with, and more like common-sense moves that emerge inevitably from sitting with the problem long enough.
+
+The classic problem of reversing a linked list felt like a good place to start. So here is my deep dive into how linked list reversal works and why it really *has* to work that way (in Python).
+
+### Problem
+Reverse a linked list `L` in-place using only `O(1)` extra space.
 
 We will use the classes below to represent the list's nodes and the list itself. (The `insert` and `print` methods are not efficiently implemented or even necessary to solve the problem, but are useful for testing.)
 ```
@@ -38,11 +43,11 @@ class LinkedList:
 
 ### Plan
 
-We use this example throughout:
+We will use this linked list as an example throughout:
 ```
 *    a -> b -> c -> d -> *   # Use * to represent None/null
 ```
-We will loop through the list, reversing arrows as we go.
+The plan is to loop through the list, reversing arrows as we go.
 ```
 *    a -> b -> c -> d -> *
 * <- a    b -> c -> d -> *
@@ -50,22 +55,22 @@ We will loop through the list, reversing arrows as we go.
 * <- a <- b <- c    d -> *
 * <- a <- b <- c <- d    *
 ```
-The reversed list is growing while the original list is shrinking, and the head node of each is constantly changing. We should be able to keep this process moving smoothly if we keep pointers -- call them `P` (previous) and `C` (current) -- trained on these moving heads. But if we only have these two pointers, it's impossible to keep `C` where it belongs, as flipping an arrow burns our only bridge to the head of the original list.
+Here we run into our first issue: our algorithm doesn't have this "god's eye view" of the list while reversing it in place, only an `O(1)` handful of pointers to specific locations. So which locations do we need pointers to? Well, at each step, the head of the (shrinking) original list is repointed to the head of the (growing) reversed list, so we definitely need two pointers -- call them `P` (previous) and `C` (current) -- trained on these heads at all times:
+```
+       P    C
+... <- x    y -> z -> ...
+```
+But if we only have these two pointers, it's impossible to keep `C` where it belongs, as flipping an arrow burns our only bridge to the new head of the original list.
 ```
 # time to flip y's arrow to point back to x, right?
        P    C
 ... <- x    y -> z -> ...
 
-# ... oops, we can't get to z now
+# ... oops, we can't get C over to z now
        P    C
 ... <- x <- y    z -> ...
 ```
-It seems that we need a third pointer, `A` (ahead), to throw us a rope across the gap when we flip an arrow.
-```
-       P    C    A
-... <- x    y -> z -> ...
-```
-This time, when we flip the arrow, `C` will be able to use `A` to jump the gap and stay in head position.
+A third pointer, `A` (ahead), would enable us to cross that gap even after flipping the arrow.
 ```
 # P and C are in head position
        P    C    A
@@ -79,23 +84,22 @@ This time, when we flip the arrow, `C` will be able to use `A` to jump the gap a
             P    C    A
 ... <- x <- y    z -> ...
 ```
+When shifting forward, we need to order the moves so that we don't lose any bridges we need. If we move `A` first, `C` will be unable to reach `z`, and if we move `C` first, `P` will be unable to reach `y`. So we have to move `P` first, then `C`, then finally `A`.
 
-### Initial Setup
+### Coding it up
 
-To turn this plan into a working algorithm, let's start by setting up the invariant.
+To turn this plan into a working algorithm, let's start by setting up the pointers.
 ```
 P = None
 C = L.head
 A = L.head.next
 ```
-On our example list, this looks like:
+On our example list, this looks like
 ```
 P    C    A                
 *    a -> b -> c -> d -> *
 ```
-
-### Flipping an Arrow
-To take a step forward, we need to flip the arrow under `C` and shift the pointers forward. When shifting forward, we need to carefully order the moves so that we don't lose any bridges we need. If we move `A` first, it'll be out of reach of `C`, and if we move `C` first, it'll be out of reach of `P`. So we have to move `P` first, then `C`, and finally `A`.
+To take a step forward, we need to flip the arrow under `C` and shift the pointers forward: first `P`, then `C`, then `A`.
 ```
 # flip arrow
 C.next = P
@@ -146,7 +150,7 @@ P    C    A
 * <- a <- b <- c <- d -> *
 ```
 
-### Putting it all together
+### Finishing touches
 
 The code so far gives us this sketch of a solution:
 
@@ -168,7 +172,7 @@ To make this a working function, we need a few final tweaks:
 
 2. When `C` points to null, `A = C.next` will throw an error. So we have to check if `C` is null before doing that assignment.
 
-3. After we finish, set the reversed list's head to `P`.
+3. After we finish, set the reversed list's new head to `P`.
 
 Just for fun, we also change `P, A, C` to the more descriptive `prev, cur, after` and squish the reassignments into some nice little one-liners.
 
