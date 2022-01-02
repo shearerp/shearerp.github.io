@@ -4,7 +4,7 @@ Confession: for years, I have found the whole topic of linked lists vaguely inti
 
 **Problem:** Reverse a linked list `L` in-place using only `O(1)` extra space.
 
-We will use these classes to represent the list's nodes and the list itself:
+We will use the classes below to represent the list's nodes and the list itself. (The `insert` and `print` methods are not efficiently implemented or even necessary to solve the problem, but are useful for testing.)
 ```
 class Node:
     """A single node of a singly Linked List"""
