@@ -1,6 +1,6 @@
 *"in mathematics you don't understand things. You just get used to them." -- John von Neumann*
 
-Confession: for years, I have found the whole topic of linked lists vaguely intimidating. A good antidote to that fear, I find, is to dive in and solve a problem, explaining it so meticulously that you start to get used to it. The classic problem of reversing a linked list felt like a good place to start, so here is my deep dive into exactly how it works (in Python).
+For years, I have found the whole topic of linked lists vaguely confusing and intimidating: *how do you keep track of all those pointers?* A good way to overcome that uneasy fuzziness is to dive in and solve a problem, explaining it so meticulously that you start to get used to the moving parts. The classic problem of reversing a linked list felt like a good place to start, so here is my deep dive into exactly how it works (in Python).
 
 **Problem:** Reverse a linked list `L` in-place using only `O(1)` extra space.
 
@@ -50,63 +50,68 @@ We will loop through the list, reversing arrows as we go.
 * <- a <- b <- c    d -> *
 * <- a <- b <- c <- d    *
 ```
-The reversed list is growing while the original list is shrinking. We want to keep pointers trained on the heads of both lists. Specifically, after each step, we want these invariants to hold:
-
-1. A "previous" pointer `P` points to the head of the reversed list.
-2. The "current" pointer `C` points to the head of the original list.
-3. The "after" pointer `A` points to the node after `C`.
-
+The reversed list is growing while the original list is shrinking, and the head node of each is constantly changing. We should be able to keep this process moving smoothly if we keep pointers -- call them `P` (previous) and `C` (current) -- trained on these moving heads. But if we only have these two pointers, it's impossible to keep `C` where it belongs, as flipping an arrow burns our only bridge to the head of the original list.
 ```
-# invariant
+# time to flip y's arrow to point back to x, right?
+       P    C
+... <- x    y -> z -> ...
+
+# ... oops, we can't get to z now
+       P    C
+... <- x <- y    z -> ...
+```
+It seems that we need a third pointer, `A` (ahead), to throw us a rope across the gap when we flip an arrow.
+```
        P    C    A
 ... <- x    y -> z -> ...
+```
+This time, when we flip the arrow, `C` will be able to use `A` to jump the gap and stay in head position.
+```
+# P and C are in head position
+       P    C    A
+... <- x    y -> z -> ...
+
+# flip y's arrow
+       P    C    A
+... <- x <- y    z -> ...
+
+# shift pointers forward to keep P and C in head position
+            P    C    A
+... <- x <- y    z -> ...
 ```
 
 ### Initial Setup
 
-Let's start by setting up the invariant:
+To turn this plan into a working algorithm, let's start by setting up the invariant.
 ```
 P = None
 C = L.head
-A = C.next
+A = L.head.next
 ```
-In our example, it looks like this:
+On our example list, this looks like:
 ```
 P    C    A                
 *    a -> b -> c -> d -> *
 ```
 
 ### Flipping an Arrow
-To take a step forward, we need to
-
-1. Flip the arrow of the node sitting under `C` to point back to `P`.
-2. Shift the pointers forward to maintain our loop invariant.
-
+To take a step forward, we need to flip the arrow under `C` and shift the pointers forward. When shifting forward, we need to carefully order the moves so that we don't lose any bridges we need. If we move `A` first, it'll be out of reach of `C`, and if we move `C` first, it'll be out of reach of `P`. So we have to move `P` first, then `C`, and finally `A`.
 ```
-# initial state
-P    C    A          
-*    a -> b -> c -> d -> *
-
-# one step forward
-     P    C    A
-* <- a    b -> c -> d -> *
-```
-
-The code to do this is:
-```
+# flip arrow
 C.next = P
+# shift pointers forward
 P = C
 C = A
 A = C.next
 ```
-Here's how our workspace changes as we run these lines step-by-step:
+Here's how things look when we loop through these lines on our example list:
 ```
 # initial state
 
 P    C    A            
 *    a -> b -> c -> d -> *
 
-# first step
+# first loop iteration
 
 P    C    A
 * <- a    b -> c -> d -> *   # C.next = P
@@ -120,7 +125,7 @@ P    C    A
      P    C    A
 * <- a    b -> c -> d -> *   # A = C.next
 
-# second step
+# second loop iteration
 
      P    C    A
 * <- a <- b    c -> d -> *   # C.next = P
@@ -134,13 +139,12 @@ P    C    A
           P    C    A
 * <- a <- b    c -> d -> *   # A = C.next
 
-# more steps...
+# more iterations...
 
 # final state
                     P   CA
 * <- a <- b <- c <- d -> *
 ```
-
 
 ### Putting it all together
 
@@ -150,7 +154,7 @@ The code so far gives us this sketch of a solution:
 def reverseList(L):
     P = None
     C = L.head
-    A = C.next
+    A = L.head.next
     while not done:
         C.next = P
         P = C
@@ -158,7 +162,7 @@ def reverseList(L):
         A = C.next
 ```
 
-To get to a working function, we need a few final tweaks:
+To make this a working function, we need a few final tweaks:
 
 1. Figure out when we're done. Based on the final state above, we need to keep going until `C` points to the null at the end of the list.
 
